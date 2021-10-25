@@ -7,7 +7,8 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 logical_gpus = tf.config.list_logical_devices("GPU")
 
-base_dir = r'D:\PycharmProjects\deeplearning_developer\datasets\cats_and_dogs_filtered'
+#https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip
+base_dir = r'D:\liyiguo\python\Tensorflow_Developer\file\cats_and_dogs\cats_and_dogs_filtered'
 
 train_dir = os.path.join(base_dir, 'train')
 validation_dir = os.path.join(base_dir, 'validation')
@@ -20,27 +21,27 @@ train_dogs_dir = os.path.join(train_dir, 'dogs')
 validation_cats_dir = os.path.join(validation_dir, 'cats')
 validation_dogs_dir = os.path.join(validation_dir, 'dogs')
 
-train_cat_fnames = os.listdir( train_cats_dir )
-train_dog_fnames = os.listdir( train_dogs_dir )
+train_cat_fnames = os.listdir(train_cats_dir)
+train_dog_fnames = os.listdir(train_dogs_dir)
 
 print(train_cat_fnames[:10])
 print(train_dog_fnames[:10])
 
-print('total training cat images :', len(os.listdir(      train_cats_dir ) ))
-print('total training dog images :', len(os.listdir(      train_dogs_dir ) ))
+print('total training cat images :', len(os.listdir(train_cats_dir)))
+print('total training dog images :', len(os.listdir(train_dogs_dir)))
 
-print('total validation cat images :', len(os.listdir( validation_cats_dir ) ))
-print('total validation dog images :', len(os.listdir( validation_dogs_dir ) ))
+print('total validation cat images :', len(os.listdir(validation_cats_dir)))
+print('total validation dog images :', len(os.listdir(validation_dogs_dir)))
 
 model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
     tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
-    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
-    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
+    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
+    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
@@ -51,40 +52,39 @@ model.compile(loss='binary_crossentropy',
               metrics=['accuracy'])
 
 train_datagen = ImageDataGenerator(
-      rescale=1./255,
-      rotation_range=40,
-      width_shift_range=0.2,
-      height_shift_range=0.2,
-      shear_range=0.2,
-      zoom_range=0.2,
-      horizontal_flip=True,
-      fill_mode='nearest')
+    rescale=1. / 255,
+    rotation_range=40,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest')
 
-validation_datagen = ImageDataGenerator(rescale=1./255)
+validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Flow training images in batches of 20 using train_datagen generator
 train_generator = train_datagen.flow_from_directory(
-        train_dir,  # This is the source directory for training images
-        target_size=(150, 150),  # All images will be resized to 150x150
-        batch_size=20,
-        # Since we use binary_crossentropy loss, we need binary labels
-        class_mode='binary')
+    train_dir,  # This is the source directory for training images
+    target_size=(150, 150),  # All images will be resized to 150x150
+    batch_size=20,
+    # Since we use binary_crossentropy loss, we need binary labels
+    class_mode='binary')
 
 # Flow validation images in batches of 20 using test_datagen generator
 validation_generator = validation_datagen.flow_from_directory(
-        validation_dir,
-        target_size=(150, 150),
-        batch_size=20,
-        class_mode='binary')
+    validation_dir,
+    target_size=(150, 150),
+    batch_size=20,
+    class_mode='binary')
 
 history = model.fit(
-      train_generator,
-      steps_per_epoch=100,  # 2000 images = batch_size * steps
-      epochs=100,
-      validation_data=validation_generator,
-      validation_steps=50,  # 1000 images = batch_size * steps
-      verbose=2)
-
+    train_generator,
+    steps_per_epoch=100,  # 2000 images = batch_size * steps
+    epochs=100,
+    validation_data=validation_generator,
+    validation_steps=50,  # 1000 images = batch_size * steps
+    verbose=2)
 
 import matplotlib.pyplot as plt
 
@@ -105,5 +105,4 @@ plt.plot(epochs, loss, 'bo', label='Training Loss')
 plt.plot(epochs, val_loss, 'b', label='Validation Loss')
 plt.title('Training and validation loss')
 plt.legend()
-
 plt.show()

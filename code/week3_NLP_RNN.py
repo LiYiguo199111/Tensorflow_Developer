@@ -1,11 +1,10 @@
 import tensorflow as tf
-
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
 import numpy as np
 import os
 import time
+
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 path_to_file = tf.keras.utils.get_file('shakespeare.txt',
                                        'https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt')

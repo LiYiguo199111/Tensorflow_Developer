@@ -13,6 +13,8 @@ from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.preprocessing import image
 import numpy as np
 
+
+
 # local_zip = r'D:\python\datasets\horse-or-human.zip'
 # zip_ref = zipfile.ZipFile(local_zip, 'r')
 # zip_ref.extractall(r'D:\python\datasets\horses_or_humans\Training')
@@ -23,9 +25,9 @@ import numpy as np
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-base_dir = r'D:\PycharmProjects\deeplearning_developer\datasets\horses_or_humans'
-train_dir = os.path.join(base_dir, 'Training')
-validation_dir = os.path.join(base_dir, 'Validation')
+base_dir = r'D:\liyiguo\python\Tensorflow_Developer\file\horse_or_human'
+train_dir = os.path.join(base_dir, 'train')
+validation_dir = os.path.join(base_dir, 'validation')
 
 train_horses_dir = os.path.join(train_dir, 'horses')
 train_humans_dir = os.path.join(train_dir, 'humans')
@@ -33,42 +35,42 @@ train_humans_dir = os.path.join(train_dir, 'humans')
 validation_horses_dir = os.path.join(validation_dir, 'horses')
 validation_humans_dir = os.path.join(validation_dir, 'humans')
 
-train_datagen = ImageDataGenerator(rescale=1/255)
-validation_datagen = ImageDataGenerator(rescale=1/255)
+train_datagen = ImageDataGenerator(rescale=1 / 255)
+validation_datagen = ImageDataGenerator(rescale=1 / 255)
 
 # Flow training images in batches of 128 using train_datagen generator
 train_generator = train_datagen.flow_from_directory(
-        train_dir,  # This is the source directory for training images
-        target_size=(300, 300),  # All images will be resized to 150x150
-        batch_size=16,
-        # Since we use binary_crossentropy loss, we need binary labels
-        class_mode='binary')
+    train_dir,  # This is the source directory for training images
+    target_size=(300, 300),  # All images will be resized to 150x150
+    batch_size=16,
+    # Since we use binary_crossentropy loss, we need binary labels
+    class_mode='binary')
 
 # Flow training images in batches of 128 using train_datagen generator
 validation_generator = validation_datagen.flow_from_directory(
-        validation_dir,  # This is the source directory for training images
-        target_size=(300, 300),  # All images will be resized to 150x150
-        batch_size=8,
-        # Since we use binary_crossentropy loss, we need binary labels
-        class_mode='binary')
+    validation_dir,  # This is the source directory for training images
+    target_size=(300, 300),  # All images will be resized to 150x150
+    batch_size=8,
+    # Since we use binary_crossentropy loss, we need binary labels
+    class_mode='binary')
 
 model = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 300x300 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(16, (3,3), activation='relu', input_shape=(300, 300, 3)),
+    tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(300, 300, 3)),
     tf.keras.layers.MaxPooling2D(2, 2),
     # The second convolution
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
     # The third convolution
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
     # The fourth convolution
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
     # The fifth convolution
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
     # Flatten the results to feed into a DNN
     tf.keras.layers.Flatten(),
     # 512 neuron hidden layer
@@ -84,40 +86,43 @@ model.compile(loss='binary_crossentropy',
 
 history = model.fit(train_generator,
                     steps_per_epoch=8,
-                    epochs=100,
+                    epochs=50,
                     verbose=1,
                     validation_data=validation_generator,
                     validation_steps=8)
 
-acc= history.history['accuracy']
-val_acc= history.history[ 'val_accuracy']
-loss= history.history['loss']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
 val_loss = history.history['val_loss']
 
-epochs= range(len(acc)) # Get number of epochs
+epochs = range(len(acc))  # Get number of epochs
 
-#------------------------------------------------
+# ------------------------------------------------
 # Plot training and validation accuracy per epoch
 import matplotlib.pyplot as plt
-plt.plot( epochs, acc )
-plt.plot( epochs, val_acc )
+
+plt.plot(epochs, acc,label = 'train_acc')
+plt.plot(epochs, val_acc, label = 'val_acc')
 plt.title('Training and validation accuracy')
+plt.legend()
 plt.show()
 
-plt.plot  ( epochs,     loss )
-plt.plot  ( epochs, val_loss )
-plt.title ('Training and validation loss'   )
+plt.plot(epochs, loss, label = 'train_loss')
+plt.plot(epochs, val_loss, label = 'val_loss')
+plt.title('Training and validation loss')
+plt.legend()
 plt.show()
 
-test_dir = os.path.join(base_dir, 'Test')
+test_dir = os.path.join(base_dir, 'test')
 for i in os.listdir(test_dir):
-    img = image.load_img(os.path.join(test_dir,i), target_size=(300, 300))
+    img = image.load_img(os.path.join(test_dir, i), target_size=(300, 300))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
     images = np.vstack([x])
     classes = model.predict(images, batch_size=10)
     print(classes[0])
-    if classes[0]>0.5:
+    if classes[0] > 0.5:
         print(i + " is a human")
     else:
         print(i + " is a horse")

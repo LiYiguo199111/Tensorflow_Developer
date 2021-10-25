@@ -1,12 +1,11 @@
 import tensorflow as tf
-print(tf.__version__)
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+print(tf.__version__)
+
+# !pip install -q tensorflow-datasets
 import tensorflow_datasets as tfds
 
 imdb, info = tfds.load("imdb_reviews", with_info=True, as_supervised=True)
-
 import numpy as np
 
 train_data, test_data = imdb['train'], imdb['test']
@@ -19,11 +18,11 @@ testing_labels = []
 
 # str(s.tonumpy()) is needed in Python3 instead of just s.numpy()
 for s, l in train_data:
-    training_sentences.append(str(s.numpy()))
+    training_sentences.append(s.numpy().decode('utf8'))
     training_labels.append(l.numpy())
 
 for s, l in test_data:
-    testing_sentences.append(str(s.numpy()))
+    testing_sentences.append(s.numpy().decode('utf8'))
     testing_labels.append(l.numpy())
 
 training_labels_final = np.array(training_labels)
@@ -54,46 +53,31 @@ def decode_review(text):
     return ' '.join([reverse_word_index.get(i, '?') for i in text])
 
 
-print(decode_review(padded[1]))
-print(training_sentences[1])
+print(decode_review(padded[3]))
+print(training_sentences[3])
 
-##GRU
-# model = tf.keras.Sequential([
-#     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
-#     tf.keras.layers.Bidirectional(tf.keras.layers.GRU(32)),
-#     tf.keras.layers.Dense(6, activation='relu'),
-#     tf.keras.layers.Dense(1, activation='sigmoid')
-# ])
-
-# #LSTM 1layer
-# model = tf.keras.Sequential([
-#     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
-#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
-#     tf.keras.layers.Dense(6, activation='relu'),
-#     tf.keras.layers.Dense(1, activation='sigmoid')
-# ])
-
-# Model Definition with Conv1D
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
-    tf.keras.layers.Conv1D(128, 5, activation='relu'),
+    # tf.keras.layers.Flatten(),
     tf.keras.layers.GlobalAveragePooling1D(),
     tf.keras.layers.Dense(6, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
-model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-model.summary()
-
-
-model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-model.summary()
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.summary()
 
 num_epochs = 10
-history = model.fit(padded, training_labels_final, epochs=num_epochs,
+history = model.fit(padded,
+                    training_labels_final,
+                    epochs=num_epochs,
                     validation_data=(testing_padded, testing_labels_final))
+
+# e = model.layers[0]
+# weights = e.get_weights()[0]
+# print(weights.shape)  # shape: (vocab_size, embedding_dim)
+#
+
 import matplotlib.pyplot as plt
 
 
@@ -106,5 +90,33 @@ def plot_graphs(history, string):
     plt.show()
 
 
-plot_graphs(history, 'accuracy')
-plot_graphs(history, 'loss')
+plot_graphs(history, "accuracy")
+plot_graphs(history, "loss")
+
+'''
+import io
+
+out_v = io.open('vecs.tsv', 'w', encoding='utf-8')
+out_m = io.open('meta.tsv', 'w', encoding='utf-8')
+for word_num in range(1, vocab_size):
+    word = reverse_word_index[word_num]
+    embeddings = weights[word_num]
+    out_m.write(word + "\n")
+    out_v.write('\t'.join([str(x) for x in embeddings]) + "\n")
+out_v.close()
+out_m.close()
+
+try:
+    from google.colab import files
+except ImportError:
+    pass
+else:
+    files.download('vecs.tsv')
+    files.download('meta.tsv')
+
+sentence = "I really think this is amazing. honest."
+sequence = tokenizer.texts_to_sequences([sentence])
+print(sequence)
+'''
+
+
